@@ -1,0 +1,9 @@
+{
+  "name": "marriage-invitation2",
+  "version": "1.0.0",
+  "private": true,
+  "description": "M. Vignesh & R. Latha Wedding Invitation - Template 2 (Velvet & Silk)",
+  "scripts": {
+    "start": "npx serve ."
+  }
+}
