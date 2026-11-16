@@ -12,6 +12,7 @@
 <meta property="og:description" content="Friday, 20 November 2026 · Sengunthar Thirumana Mandapam, Kalambur">
 <meta property="og:image" content="media/couple-photo.jpg">
 <meta name="twitter:card" content="summary_large_image">
+<link rel="preload" href="media/music.mp3" as="audio" type="audio/mpeg">
 <link rel="preload" href="media/film-ruby-first.jpg?v=2" as="image">
 <link rel="stylesheet" href="media/lenis.css">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -265,7 +266,7 @@ p{margin:0}
   <svg class="off" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M9 18V6l10-2v12"/><circle cx="6.5" cy="18" r="2.5"/><circle cx="16.5" cy="16" r="2.5"/><path d="M3 3l18 18"/></svg>
   <svg class="on" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M9 18V6l10-2v12"/><circle cx="6.5" cy="18" r="2.5"/><circle cx="16.5" cy="16" r="2.5"/></svg>
 </button>
-<audio id="audio" loop preload="none" src="media/music.mp3"></audio>
+<audio id="audio" loop preload="auto" src="media/music.mp3"></audio>
 
 <!-- 0 · Заставка: стена блесток -->
 <header class="intro" id="intro" role="button" tabindex="0" aria-label="A wall of red glitter. Blow on your phone or tap to open the invitation from Vignesh and Latha" data-block="intro">
@@ -633,6 +634,10 @@ var EVENT={
 
   /* ===== Background Tamil Wedding Song BGM ===== */
   var audio=document.getElementById('audio'), mBtn=document.getElementById('music');
+  if(audio) {
+    audio.preload = 'auto';
+    try { audio.load(); } catch(e) {}
+  }
   function playMusic(on){
     if(!audio) return;
     if(on){
@@ -643,7 +648,10 @@ var EVENT={
     }
     if(mBtn) mBtn.setAttribute('aria-pressed', on?'true':'false');
   }
-  if(mBtn) mBtn.addEventListener('click', function(e){ e.stopPropagation(); playMusic(audio.paused); });
+  if(mBtn){
+    mBtn.addEventListener('pointerdown', function(e){ e.stopPropagation(); playMusic(audio.paused); }, { passive: true });
+    mBtn.addEventListener('click', function(e){ e.stopPropagation(); playMusic(audio.paused); });
+  }
 
   function setBlow(v){ blow=v; meter.style.setProperty('--blow',v.toFixed(3)); }
   function open(byTap){ if(opened)return; opened=true; clearTimeout(autoT); buzz([20,30,40]); setBlow(0);
@@ -676,9 +684,14 @@ var EVENT={
   film.addEventListener('ended',function(){ if(mode==='video')showNames(); });
   film.addEventListener('error',function(){ stillEnd(); });
 
-  function tapOpen(e){ if(opened||e.target.closest('.mic'))return; open(true); }
-  intro.addEventListener('click',tapOpen); intro.addEventListener('touchend',tapOpen);
+  function tapOpen(e){ if(opened||(e.target&&e.target.closest&&e.target.closest('.mic')))return; open(true); }
+  intro.addEventListener('pointerdown', tapOpen, { passive: true });
+  intro.addEventListener('touchstart', tapOpen, { passive: true });
+  intro.addEventListener('click', tapOpen);
   intro.addEventListener('keydown',function(e){ if(!opened&&(e.key==='Enter'||e.key===' ')){ e.preventDefault(); open(true); } });
+
+  // First touch anywhere on document also safely un-mutes/plays audio immediately if opened
+  window.addEventListener('pointerdown', function(){ if(!audio.paused) return; if(opened) playMusic(true); }, { once: true, passive: true });
 
   var autoT=0;
   function plan(){ if(opened||!vidReady)return; clearTimeout(autoT); autoT=setTimeout(function(){ open(false); },3500); }
