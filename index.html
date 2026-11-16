@@ -251,9 +251,21 @@ p{margin:0}
 .dock{position:fixed;left:0;right:0;bottom:0;z-index:30;padding:14px var(--pad) calc(14px + env(safe-area-inset-bottom));transform:translateY(130%);transition:transform .45s var(--ease);display:flex;justify-content:center;pointer-events:none;background:linear-gradient(to top,rgba(26,2,7,.96) 0%,rgba(26,2,7,.75) 70%,transparent 100%);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
 .dock.is-on{transform:none}
 .dock .btn{width:100%;max-width:380px;pointer-events:auto}
+
+/* Floating Music Player Button */
+.music{position:fixed;right:16px;top:calc(16px + env(safe-area-inset-top));z-index:40;width:44px;height:44px;border-radius:50%;border:1.5px solid var(--gold);background:rgba(26,2,7,.8);color:var(--gold2);display:grid;place-items:center;cursor:pointer;-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);box-shadow:0 6px 18px rgba(0,0,0,.6);transition:transform .2s,background .2s}
+.music:hover{transform:scale(1.06);background:rgba(44,5,12,.95)}
+.music svg{width:18px;height:18px}
+.music[aria-pressed="false"] .on,.music[aria-pressed="true"] .off{display:none}
 </style>
 </head>
 <body>
+
+<button class="music" id="music" type="button" aria-pressed="false" aria-label="Toggle Tamil Wedding BGM">
+  <svg class="off" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M9 18V6l10-2v12"/><circle cx="6.5" cy="18" r="2.5"/><circle cx="16.5" cy="16" r="2.5"/><path d="M3 3l18 18"/></svg>
+  <svg class="on" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M9 18V6l10-2v12"/><circle cx="6.5" cy="18" r="2.5"/><circle cx="16.5" cy="16" r="2.5"/></svg>
+</button>
+<audio id="audio" loop preload="none" src="media/music.mp3"></audio>
 
 <!-- 0 · Заставка: стена блесток -->
 <header class="intro" id="intro" role="button" tabindex="0" aria-label="A wall of red glitter. Blow on your phone or tap to open the invitation from Vignesh and Latha" data-block="intro">
@@ -619,8 +631,23 @@ var EVENT={
   try{ var wp=film.play(); if(wp&&wp.then)wp.then(function(){ autoOK=true; if(!opened){ film.pause(); try{film.currentTime=0;}catch(e){} } vidReady=true; plan(); },
     function(e){ if(e&&e.name==='NotAllowedError'){ autoOK=false; vidReady=true; plan(); } }); }catch(e){}
 
+  /* ===== Background Tamil Wedding Song BGM ===== */
+  var audio=document.getElementById('audio'), mBtn=document.getElementById('music');
+  function playMusic(on){
+    if(!audio) return;
+    if(on){
+      var p=audio.play();
+      if(p&&p.catch) p.catch(function(){});
+    } else {
+      audio.pause();
+    }
+    if(mBtn) mBtn.setAttribute('aria-pressed', on?'true':'false');
+  }
+  if(mBtn) mBtn.addEventListener('click', function(e){ e.stopPropagation(); playMusic(audio.paused); });
+
   function setBlow(v){ blow=v; meter.style.setProperty('--blow',v.toFixed(3)); }
   function open(byTap){ if(opened)return; opened=true; clearTimeout(autoT); buzz([20,30,40]); setBlow(0);
+    playMusic(true);
     intro.classList.add('is-go'); intro.removeAttribute('role'); intro.removeAttribute('tabindex');
     mode='video'; try{film.currentTime=0;}catch(e){}
     var fail=function(){ stillEnd(); };
@@ -632,6 +659,7 @@ var EVENT={
     if(named)return; named=true;
     intro.classList.add('is-names');
     H.classList.remove('is-intro');
+    playMusic(true);
     if(window.lenis){
       window.lenis.resize();
       window.lenis.start();
